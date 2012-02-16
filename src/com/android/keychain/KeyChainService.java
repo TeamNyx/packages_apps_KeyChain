@@ -28,7 +28,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.os.IBinder;
 import android.security.Credentials;
 import android.security.IKeyChainService;
-import android.security.KeyChain;
 import android.security.KeyStore;
 import android.util.Log;
 import java.io.ByteArrayInputStream;
@@ -40,7 +39,6 @@ import java.security.cert.X509Certificate;
 import org.apache.harmony.xnet.provider.jsse.TrustedCertificateStore;
 
 public class KeyChainService extends IntentService {
-
     private static final String TAG = "KeyChain";
 
     private static final String DATABASE_NAME = "grants.db";
@@ -125,7 +123,6 @@ public class KeyChainService extends IntentService {
             } catch (CertificateException e) {
                 throw new IllegalStateException(e);
             }
-            broadcastStorageChange();
         }
 
         private X509Certificate parseCertificate(byte[] bytes) throws CertificateException {
@@ -147,20 +144,14 @@ public class KeyChainService extends IntentService {
                         }
                     }
                 }
+                return ok;
             }
-            broadcastStorageChange();
-            return ok;
         }
 
         @Override public boolean deleteCaCertificate(String alias) {
             // only Settings should be able to delete
             checkSystemCaller();
-            boolean ok = true;
-            synchronized (mTrustedCertificateStore) {
-                ok = deleteCertificateEntry(alias);
-            }
-            broadcastStorageChange();
-            return ok;
+            return deleteCertificateEntry(alias);
         }
 
         private boolean deleteCertificateEntry(String alias) {
@@ -205,7 +196,6 @@ public class KeyChainService extends IntentService {
         @Override public void setGrant(int uid, String alias, boolean value) {
             checkSystemCaller();
             setGrantInternal(mDatabaseHelper.getWritableDatabase(), uid, alias, value);
-            broadcastStorageChange();
         }
     };
 
@@ -299,10 +289,4 @@ public class KeyChainService extends IntentService {
             db.endTransaction();
         }
     }
-
-    private void broadcastStorageChange() {
-        Intent intent = new Intent(KeyChain.ACTION_STORAGE_CHANGED);
-        sendBroadcast(intent);
-    }
-
 }
