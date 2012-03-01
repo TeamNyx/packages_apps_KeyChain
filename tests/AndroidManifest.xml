@@ -18,7 +18,6 @@
           package="com.android.keychain.tests">
   
     <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
-    <uses-permission android:name="android.permission.USE_CREDENTIALS"/>
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <!--
