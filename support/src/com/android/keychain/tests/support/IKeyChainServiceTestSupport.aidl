@@ -33,6 +33,7 @@ interface IKeyChainServiceTestSupport {
     boolean keystoreReset();
     boolean keystorePassword(String password);
     boolean keystorePut(String key, in byte[] value);
+    boolean keystoreImportKey(String key, in byte[] value);
     void revokeAppPermission(int uid, String alias);
     void grantAppPermission(int uid, String alias);
 }

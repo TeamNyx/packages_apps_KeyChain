@@ -172,16 +172,16 @@ public class KeyChainServiceTest extends Service {
             Certificate intermediate2 = pke2.getCertificateChain()[1];
             Certificate root2 = TestKeyStore.getServer().getRootCertificate("RSA");
 
-            assertTrue(mSupport.keystorePut(alias1Pkey,
-                                            Credentials.convertToPem(pke1.getPrivateKey())));
+            assertTrue(mSupport.keystoreImportKey(alias1Pkey,
+                                           pke1.getPrivateKey().getEncoded()));
             assertTrue(mSupport.keystorePut(alias1Cert,
                                             Credentials.convertToPem(pke1.getCertificate())));
             assertTrue(mSupport.keystorePut(alias1ICert,
                                             Credentials.convertToPem(intermediate1)));
             assertTrue(mSupport.keystorePut(alias1RCert,
                                             Credentials.convertToPem(root1)));
-            assertTrue(mSupport.keystorePut(alias2Pkey,
-                                            Credentials.convertToPem(pke2.getPrivateKey())));
+            assertTrue(mSupport.keystoreImportKey(alias2Pkey,
+                                            pke2.getPrivateKey().getEncoded()));
             assertTrue(mSupport.keystorePut(alias2Cert,
                                             Credentials.convertToPem(pke2.getCertificate())));
             assertTrue(mSupport.keystorePut(alias2ICert,
@@ -204,10 +204,8 @@ public class KeyChainServiceTest extends Service {
             mSupport.grantAppPermission(getApplicationInfo().uid, alias1);
             // don't grant alias2, so it can be done manually with KeyChainTestActivity
             Log.d(TAG, "test_KeyChainService positive testing");
-            byte[] privateKey = mService.getPrivateKey(alias1);
-            assertNotNull(privateKey);
-            assertEquals(Arrays.toString(Credentials.convertToPem(pke1.getPrivateKey())),
-                         Arrays.toString(privateKey));
+            assertNotNull("Requesting private key should succeed",
+                    mService.requestPrivateKey(alias1));
 
             byte[] certificate = mService.getCertificate(alias1);
             assertNotNull(certificate);
@@ -217,7 +215,7 @@ public class KeyChainServiceTest extends Service {
             Log.d(TAG, "test_KeyChainService negative testing");
             mSupport.revokeAppPermission(getApplicationInfo().uid, alias2);
             try {
-                mService.getPrivateKey(alias2);
+                mService.requestPrivateKey(alias2);
                 fail();
             } catch (IllegalStateException expected) {
             }
