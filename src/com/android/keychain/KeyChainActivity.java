@@ -34,6 +34,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -163,6 +164,13 @@ public class KeyChainActivity extends Activity {
         lv.addFooterView(footer, null, false);
         lv.setAdapter(adapter);
         builder.setView(lv);
+
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    lv.setItemChecked(position, true);
+                }
+        });
 
         boolean empty = adapter.mAliases.isEmpty();
         int negativeLabel = empty ? android.R.string.cancel : R.string.deny_button;
