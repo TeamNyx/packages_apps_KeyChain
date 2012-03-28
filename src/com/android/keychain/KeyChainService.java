@@ -25,7 +25,9 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Binder;
 import android.os.IBinder;
+import android.os.Process;
 import android.security.Credentials;
 import android.security.IKeyChainService;
 import android.security.KeyChain;
@@ -82,15 +84,30 @@ public class KeyChainService extends IntentService {
         private final TrustedCertificateStore mTrustedCertificateStore
                 = new TrustedCertificateStore();
 
-        @Override public byte[] getPrivateKey(String alias) {
-            return getKeyStoreEntry(Credentials.USER_PRIVATE_KEY, alias);
+        @Override
+        public String requestPrivateKey(String alias) {
+            checkArgs(alias);
+
+            final String keystoreAlias = Credentials.USER_PRIVATE_KEY + alias;
+            final int uid = Binder.getCallingUid();
+            if (!mKeyStore.grant(keystoreAlias, uid)) {
+                return null;
+            }
+
+            final StringBuilder sb = new StringBuilder();
+            sb.append(Process.SYSTEM_UID);
+            sb.append('_');
+            sb.append(keystoreAlias);
+
+            return sb.toString();
         }
 
         @Override public byte[] getCertificate(String alias) {
-            return getKeyStoreEntry(Credentials.USER_CERTIFICATE, alias);
+            checkArgs(alias);
+            return mKeyStore.get(Credentials.USER_CERTIFICATE + alias);
         }
 
-        private byte[] getKeyStoreEntry(String type, String alias) {
+        private void checkArgs(String alias) {
             if (alias == null) {
                 throw new NullPointerException("alias == null");
             }
@@ -102,12 +119,6 @@ public class KeyChainService extends IntentService {
                 throw new IllegalStateException("uid " + callingUid
                         + " doesn't have permission to access the requested alias");
             }
-            String key = type + alias;
-            byte[] bytes =  mKeyStore.get(key);
-            if (bytes == null) {
-                return null;
-            }
-            return bytes;
         }
 
         private boolean isKeyStoreUnlocked() {

@@ -43,6 +43,10 @@ public class KeyChainServiceTestSupport extends Service {
             Log.d(TAG, "keystorePut");
             return mKeyStore.put(key, value);
         }
+        @Override public boolean keystoreImportKey(String key, byte[] value) {
+            Log.d(TAG, "keystoreImport");
+            return mKeyStore.importKey(key, value);
+        }
 
         @Override public void revokeAppPermission(final int uid, final String alias)
                 throws RemoteException {
